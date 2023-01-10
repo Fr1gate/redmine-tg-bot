@@ -1,6 +1,6 @@
 const dayjs = require("dayjs");
-const {checkDate} = require("./workCalendar.js");
-const {getTimeEntries, getIssue} = require("./redmine.js");
+const {checkDate} = require("../api/workCalendar.js");
+const {getTimeEntries, getIssue} = require("../api/redmine.js");
 
 async function getPrevWorkDay() {
   let day = dayjs().startOf("day").subtract(1);
@@ -21,16 +21,8 @@ async function getPrevWorkDay() {
   }
 }
 
-async function prevWorkDayReport() {
-  /*
-    Отчёт за 09.01.2023 (сегодня/вчера):
-    #126 | Название задачи - 8
-    
-    Всего часов: 8
-   */
-  
+async function prevWorkDayReport(user_id) {
   const prevDay = await getPrevWorkDay();
-  
   const timeEntries = await getTimeEntries(prevDay.day, prevDay.day);
   
   let totalHours = 0;
@@ -39,7 +31,9 @@ async function prevWorkDayReport() {
     totalHours += entry.hours;
     const issue = await getIssue(entry.issue.id)
     const name_length = 50;
-    const name = issue.subject.length > name_length ? issue.subject.slice(0, name_length).concat("...") : issue.subject;
+    const name = issue.subject.length > name_length
+      ? issue.subject.slice(0, name_length).concat("...")
+      : issue.subject;
     const issueLink = `https://redmine.brainstorm-lab.com/issues/${issue.id}`;
     messByTasks += `[\\#${entry.issue.id} \\| ${name}](${issueLink}) \\- ${entry.hours}\n`;
   }
