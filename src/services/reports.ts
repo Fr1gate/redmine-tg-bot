@@ -2,12 +2,14 @@ const dayjs = require("dayjs");
 const {checkDate} = require("../api/workCalendar.js");
 const {getTimeEntries, getIssue} = require("../api/redmine.js");
 
-async function getPrevWorkDay() {
+async function getPrevWorkDay(): Promise<{
+
+}> {
   let day = dayjs().startOf("day").subtract(1);
   let emergencyBreak = 0;
   while (true) {
     const curDay = await checkDate(day);
-    if (curDay.isOff === false) {
+    if (!curDay.isOff) {
       return {
         ...curDay, day,
       }
@@ -21,9 +23,16 @@ async function getPrevWorkDay() {
   }
 }
 
-async function prevWorkDayReport(user_id) {
-  const prevDay = await getPrevWorkDay();
-  const timeEntries = await getTimeEntries(prevDay.day, prevDay.day);
+async function prevWorkDayReport(user_id: number) {
+  return dayReport(user_id, await getPrevWorkDay());
+}
+
+async function todayReport(user_id: number) {
+  return dayReport(user_id, new Date());
+}
+
+async function dayReport(user_id: number, date) {
+  const timeEntries = await getTimeEntries(date.day, date.day);
   
   let totalHours = 0;
   let messByTasks = "";
@@ -38,7 +47,7 @@ async function prevWorkDayReport(user_id) {
     messByTasks += `[\\#${entry.issue.id} \\| ${name}](${issueLink}) \\- ${entry.hours}\n`;
   }
   
-  return `Отчёт за ${dayjs(prevDay.day).format("DD\\.MM\\.YYYY")}
+  return `Отчёт за ${dayjs(date.day).format("DD\\.MM\\.YYYY")}
 
 ${messByTasks}
 Всего часов: ${totalHours}`
@@ -46,4 +55,5 @@ ${messByTasks}
 
 module.exports = {
   prevWorkDayReport,
+  todayReport,
 }

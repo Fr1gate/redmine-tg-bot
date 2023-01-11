@@ -1,19 +1,33 @@
-require("dotenv").config();
-const { Telegraf, Markup} = require('telegraf');
-const { message } = require('telegraf/filters');
-const process = require("node:process");
-const {prevWorkDayReport} = require("./services/reports.js");
-const { DBService } = require("./services/db.js");
-const { RedmineAPI } = require("./api/redmine.js");
+import {Telegraf} from "telegraf";
+import {message} from "telegraf/filters";
+import {prevWorkDayReport} from "./services/reports";
+import {getPrisma} from "./services/db";
+import {RedmineAPI} from "./api/redmine"
+import * as dotenv from "dotenv"
+
+dotenv.config();
+
+const prisma = getPrisma();
+
+if (!process.env.BOT_TOKEN) {
+  console.error("Error: NO TELEGRAM TOKEN");
+  throw new Error("process.env.BOT_TOKEN is empty")
+}
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
-bot.start((ctx) => {
-  const user_id = ctx.update.message.from.id;
-  const user = DBService.getUser(user_id);
+bot.start(async (ctx) => {
+  const telegram_id = String(ctx.update.message.from.id);
+  const user = await prisma.user.findFirst({
+    where: {
+      telegram_id,
+    }
+  });
 
   if (!user) {
-    DBService.setUser(user_id, {
-      waitingToken: true,
+    await prisma.user.create({
+      data: {
+        telegram_id,
+      }
     })
 
     ctx.reply(
@@ -32,18 +46,25 @@ bot.help((ctx) => {
     "/week - список времени за неделю"
   )
 })
-bot.on(message("text"), (ctx) => {
-  const user_id = ctx.update.message.from.id;
-  const user = DBService.getUser(user_id);
-  if (user.waitingToken) {
+bot.on(message("text"), async (ctx) => {
+  const telegram_id = String(ctx.update.message.from.id);
+  const user = await prisma.user.findFirst({
+    where: {
+      telegram_id,
+    }
+  });
+  if (user && !user.redmine_token) {
     ctx.reply("Устанавливаю соединение!");
     RedmineAPI.getUser(ctx.message.text)
       .then((redmineUser) => {
         ctx.reply(`Ура!! Все получилось, теперь я смогу тебе напомнить о заполненных часах, ${redmineUser.firstname} ${redmineUser.lastname}`);
-        DBService.setUser(user_id, {
-          ...user,
-          waitingToken: false,
-          redmineToken: ctx.message.text,
+        prisma.user.update({
+          where: {
+            id: user.id,
+          },
+          data: {
+            redmine_token: ctx.message.text,
+          }
         })
       })
       .catch(() => {
