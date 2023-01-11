@@ -1,6 +1,6 @@
-const dayjs = require("dayjs");
-const {checkDate} = require("../api/workCalendar.js");
-const {getTimeEntries, getIssue} = require("../api/redmine.js");
+import dayjs from "dayjs";
+import { checkDate } from "../api/workCalendar";
+import {getTimeEntries, getIssue} from ("../api/redmine.ts");
 
 async function getPrevWorkDay(): Promise<{
 

@@ -1,51 +1,53 @@
-const axios = require("axios");
-const dayjs = require("dayjs");
+import axios, { AxiosInstance } from "axios";
+import dayjs from "dayjs";
+import { DateLike } from "../globals";
 
-// const REDMINE_API_KEY = "c544f661de3143b5119c8bb2d38f5072513a5a5d";
+const getRequest = (redmineToken: string): AxiosInstance =>
+  axios.create({
+    baseURL: "https://redmine.brainstorm-lab.com",
+    headers: {
+      "X-Redmine-API-Key": redmineToken,
+    },
+  });
 
-const getRequest = (token) => axios.create({
-  baseURL: "https://redmine.brainstorm-lab.com",
-  headers: {
-    "X-Redmine-API-Key": token,
-  }
-})
-
-const RedmineAPI = {
-  getUser: async function getUser(token) {
-    return getRequest(token).get("/my/account.json").then(({data}) => data.user);
-  },
-  
-  getMyID: async function getMyID(token) {
-    return await getRequest()
+export const RedmineAPI = {
+  getUser: async function getUser(redmineToken: string) {
+    return await getRequest(redmineToken)
       .get("/my/account.json")
-      .then(({data}) => data.user.id);
+      .then(({ data }) => data.user);
   },
-  
-  getTimeEntries: async function getTimeEntries(token, from, to) {
-    const user_id = await RedmineAPI.getMyID();
-    
-    console.log(user_id);
-  
+
+  getMyID: async function getMyID(redmineToken: string): Promise<string> {
+    return await getRequest(redmineToken)
+      .get("/my/account.json")
+      .then(({ data }) => String(data.user.id));
+  },
+
+  getTimeEntries: async function getTimeEntries(
+    redmineToken: string,
+    from: DateLike,
+    to: DateLike
+  ) {
+    const userId = await RedmineAPI.getMyID(redmineToken);
+
     // TODO: add pagination support, as 100 is max limit
-    return getRequest()
+    return await getRequest(redmineToken)
       .get("/time_entries.json", {
         params: {
           from: dayjs(from).format("YYYY-MM-DD"),
           to: dayjs(to).format("YYYY-MM-DD"),
-          user_id,
+          userId,
           limit: 100,
         },
       })
-      .then(({data}) => {
-        return data.time_entries
+      .then(({ data }) => {
+        return data.time_entries;
       });
   },
-  
-  getIssue: async function getIssue(token, id) {
-    return getRequest().get(`/issues/${id}.json`).then(({data}) => data.issue)
-  },
-}
 
-module.exports = {
-  RedmineAPI
-}
+  getIssue: async function getIssue(redmineToken: string, id: string) {
+    return await getRequest(redmineToken)
+      .get(`/issues/${id}.json`)
+      .then(({ data }) => data.issue);
+  },
+};

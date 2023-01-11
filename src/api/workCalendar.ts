@@ -34,7 +34,7 @@ async function getCalendar(year: number): Promise<CalendarResponse> {
   return calendars[year];
 }
 
-async function checkDate(date: Date | string | dayjs.Dayjs): Promise<{
+export async function checkDate(date: Date | string | dayjs.Dayjs): Promise<{
   isOff: boolean;
   isShort: boolean;
 }> {
@@ -46,14 +46,12 @@ async function checkDate(date: Date | string | dayjs.Dayjs): Promise<{
     return month.month === dayjs(date).month() + 1;
   });
   const days = month?.days.split(",") ?? [];
+
   const isOff = days.includes(String(day));
   const isShort = days.includes(`${day}*`);
+
   return {
     isOff,
     isShort,
   };
 }
-
-module.exports = {
-  checkDate,
-};
