@@ -1,31 +1,15 @@
 import axios from "axios";
 import dayjs from "dayjs";
+import { WorkDay } from "../services/reports";
+import { DateLike } from "../globals.types";
+import { CalendarResponse } from "./workCalendar.types";
 
 const request = axios.create({});
-
-interface CalendarResponse {
-  year: number;
-  months: Array<{
-    month: number;
-    days: string;
-  }>;
-  transitions: Array<{
-    from: string;
-    to: string;
-  }>;
-  statistic: {
-    workdays: number;
-    holidays: number;
-    hours40: number;
-    hours36: number;
-    hours24: number;
-  };
-}
 
 const calendars: Record<number, CalendarResponse> = {};
 
 async function getCalendar(year: number): Promise<CalendarResponse> {
-  if (calendars[year] !== undefined) {
+  if (calendars[year] === undefined) {
     calendars[year] = (await request
       .get(`http://xmlcalendar.ru/data/ru/${year}/calendar.json`)
       .then(({ data }) => data)) as CalendarResponse;
@@ -34,10 +18,7 @@ async function getCalendar(year: number): Promise<CalendarResponse> {
   return calendars[year];
 }
 
-export async function checkDate(date: Date | string | dayjs.Dayjs): Promise<{
-  isOff: boolean;
-  isShort: boolean;
-}> {
+export async function checkDate(date: DateLike): Promise<Omit<WorkDay, "day">> {
   const year = dayjs(date).year();
   const day = dayjs(date).date();
 

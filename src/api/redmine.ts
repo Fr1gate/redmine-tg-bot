@@ -1,6 +1,7 @@
 import axios, { AxiosInstance } from "axios";
 import dayjs from "dayjs";
-import { DateLike } from "../globals";
+import { DateLike } from "../globals.types";
+import { RedmineAPITypes } from "./redmine.types";
 
 const getRequest = (redmineToken: string): AxiosInstance =>
   axios.create({
@@ -11,32 +12,32 @@ const getRequest = (redmineToken: string): AxiosInstance =>
   });
 
 export const RedmineAPI = {
-  getUser: async function getUser(redmineToken: string) {
+  getUser: async (redmineToken: string) => {
     return await getRequest(redmineToken)
       .get("/my/account.json")
       .then(({ data }) => data.user);
   },
 
-  getMyID: async function getMyID(redmineToken: string): Promise<string> {
+  getMyID: async (redmineToken: string): Promise<string> => {
     return await getRequest(redmineToken)
       .get("/my/account.json")
       .then(({ data }) => String(data.user.id));
   },
 
-  getTimeEntries: async function getTimeEntries(
+  getTimeEntries: async (
     redmineToken: string,
     from: DateLike,
     to: DateLike
-  ) {
+  ): Promise<RedmineAPITypes.TimeEntriesResponse["time_entries"]> => {
     const userId = await RedmineAPI.getMyID(redmineToken);
 
     // TODO: add pagination support, as 100 is max limit
     return await getRequest(redmineToken)
-      .get("/time_entries.json", {
+      .get("/time_entries.json?include=issues", {
         params: {
           from: dayjs(from).format("YYYY-MM-DD"),
           to: dayjs(to).format("YYYY-MM-DD"),
-          userId,
+          user_id: userId,
           limit: 100,
         },
       })
@@ -45,7 +46,10 @@ export const RedmineAPI = {
       });
   },
 
-  getIssue: async function getIssue(redmineToken: string, id: string) {
+  getIssue: async (
+    redmineToken: string,
+    id: string
+  ): Promise<RedmineAPITypes.Issue> => {
     return await getRequest(redmineToken)
       .get(`/issues/${id}.json`)
       .then(({ data }) => data.issue);

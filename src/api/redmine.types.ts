@@ -1,6 +1,6 @@
 import {DateLike} from "../globals";
 
-declare namespace RedmineAPI {
+export namespace RedmineAPITypes {
     export interface IssuesResponse {
         issues: Issue[]
     }
@@ -52,5 +52,33 @@ declare namespace RedmineAPI {
         "created_on": string,
         "updated_on": string,
         "closed_on": null | string
+    }
+
+    export interface TimeEntriesResponse {
+        time_entries: Array<TimeEntry>
+    }
+
+    export interface TimeEntry {
+        "id": number,
+        "project": {
+            "id": number,
+            "name": string
+        },
+        "issue": {
+            "id": number
+        },
+        "user": {
+            "id": number,
+            "name": string
+        },
+        "activity": {
+            "id": number,
+            "name": string
+        },
+        hours: number;
+        "comments": string;
+        "spent_on": string;
+        "created_on": string;
+        "updated_on": string;
     }
 }

@@ -17,6 +17,12 @@
     "indent": [
       0,
       2
+    ],
+    "@typescript-eslint/restrict-template-expressions": [
+      2,
+      {
+        "allowAny": true
+      }
     ]
   }
 }
