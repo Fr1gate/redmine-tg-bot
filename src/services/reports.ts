@@ -116,12 +116,16 @@ async function weekReport(
   let messageByDays = "";
   let totalHours: number = 0;
 
-  const hoursByTasks: Record<string, number> = {};
+  const hoursByTasks: Record<
+    string,
+    { hours: number; name: string | undefined }
+  > = {};
   const hoursByDays: Record<string, number> = {};
 
   timeEntries.forEach((entry) => {
     totalHours += +entry.hours;
 
+    // by days
     const taskDate = dayjs(entry.spent_on)
       .startOf("day")
       .format(DATE_FORMATS.dotForMarkdown);
@@ -131,13 +135,18 @@ async function weekReport(
       hoursByDays[taskDate] += +entry.hours;
     }
 
+    // by tasks
     if (hoursByTasks[entry.issue.id] === undefined) {
-      hoursByTasks[entry.issue.id] = entry.hours;
+      hoursByTasks[entry.issue.id] = {
+        hours: entry.hours,
+        name: entry.issue.name,
+      };
     } else {
-      hoursByTasks[entry.issue.id] += +entry.hours;
+      hoursByTasks[entry.issue.id].hours += +entry.hours;
     }
   });
 
+  // By days
   const sortedDays = Object.entries(hoursByDays).sort(([date1], [date2]) => {
     return Number(dayjs(date1) < dayjs(date2));
   });
@@ -146,10 +155,13 @@ async function weekReport(
     messageByDays += `${date} \\- ${escapeNumber(hours)}ч\n`;
   });
 
-  Object.entries(hoursByTasks).forEach(([taskId, hours]) => {
-    messageByTasks += `[\\#${String(taskId)} \\| ${""}](${getRedmineIssueLink(
-      taskId
-    )}) \\- ${escapeNumber(hours)}\n`;
+  // By tasks
+  console.log(hoursByTasks);
+
+  Object.entries(hoursByTasks).forEach(([taskId, { hours, name }]) => {
+    messageByTasks += `[\\#${String(taskId)} \\| ${
+      name ?? ""
+    }](${getRedmineIssueLink(taskId)}) \\- ${escapeNumber(hours)}\n`;
   });
 
   return `Отчёт за ${dayjs(dateStart).format(

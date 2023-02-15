@@ -64,6 +64,7 @@ export namespace RedmineAPITypes {
     };
     issue: {
       id: number;
+      name: string | undefined;
     };
     user: {
       id: number;
