@@ -12,31 +12,41 @@ export function initSchedules(): void {
   dailyRule.hour = 10;
 
   schedule.scheduleJob(dailyRule, async () => {
-    // check if current day is workday
-    const { isOff } = await checkDate(dayjs());
+    try {
+      console.log("job")
+      // check if current day is workday
+      const { isOff } = await checkDate(dayjs());
 
-    if (isOff) return;
+      if (isOff) return;
 
-    const registeredUsers = await prisma.user.findMany({
-      where: {
-        redmine_token: {
-          not: null,
+      const registeredUsers = await prisma.user.findMany({
+        where: {
+          redmine_token: {
+            not: null,
+          },
         },
-      },
-    });
-
-    const isWeekStart = dayjs().startOf("day") === dayjs().startOf("week");
-
-    for (const user of registeredUsers) {
-      if (user.redmine_token === null) return;
-
-      const report = isWeekStart
-        ? await previousWeekReport(user.redmine_token)
-        : await prevWorkDayReport(user.redmine_token);
-
-      void bot.telegram.sendMessage(user.telegram_id, report, {
-        parse_mode: "MarkdownV2",
       });
+
+      const isWeekStart = dayjs().startOf("day") === dayjs().startOf("week");
+
+      for (const user of registeredUsers) {
+        try {
+          if (user.redmine_token === null) return;
+
+          const report = isWeekStart
+            ? await previousWeekReport(user.redmine_token)
+            : await prevWorkDayReport(user.redmine_token);
+
+          void bot.telegram.sendMessage(user.telegram_id, report, {
+            parse_mode: "MarkdownV2",
+          });
+        } catch (e) {
+          console.log("Error processing user_id: ", user.id);
+          console.log(e);
+        }
+      }
+    } catch (e) {
+      console.log("Faced error while executing job", e);
     }
   });
 }

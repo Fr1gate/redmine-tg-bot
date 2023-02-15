@@ -79,6 +79,7 @@ export const TelegramCommands = {
           );
         });
     } else {
+      void ctx.reply("Если нужна помощь, жми /help!")
       void next();
     }
   },

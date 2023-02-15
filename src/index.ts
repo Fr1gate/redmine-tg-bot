@@ -31,9 +31,11 @@ void bot.launch();
 // Enable graceful stop
 process.once("SIGINT", () => {
   bot.stop("SIGINT");
+  console.log("gracefult shutdown")
   void schedule.gracefulShutdown();
 });
 process.once("SIGTERM", () => {
   bot.stop("SIGTERM");
+  console.log("gracefult shutdown")
   void schedule.gracefulShutdown();
 });
