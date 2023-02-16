@@ -9,7 +9,7 @@ const prisma = getPrisma();
 
 export function initSchedules(): void {
   const dailyRule = new schedule.RecurrenceRule();
-  dailyRule.hour = 11;
+  dailyRule.hour = 10;
   dailyRule.minute = 0;
 
   schedule.scheduleJob(dailyRule, async () => {
