@@ -156,8 +156,6 @@ async function weekReport(
   });
 
   // By tasks
-  console.log(hoursByTasks);
-
   Object.entries(hoursByTasks).forEach(([taskId, { hours, name }]) => {
     messageByTasks += `[\\#${String(taskId)} \\| ${
       name ?? ""

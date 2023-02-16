@@ -9,11 +9,11 @@ const prisma = getPrisma();
 
 export function initSchedules(): void {
   const dailyRule = new schedule.RecurrenceRule();
-  dailyRule.hour = 10;
+  dailyRule.hour = 11;
+  dailyRule.minute = 0;
 
   schedule.scheduleJob(dailyRule, async () => {
     try {
-      console.log("job")
       // check if current day is workday
       const { isOff } = await checkDate(dayjs());
 
