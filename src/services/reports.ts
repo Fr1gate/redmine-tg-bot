@@ -29,7 +29,7 @@ function truncateEscapeString(str: string, length: number = 30): string {
 }
 
 async function getPrevWorkDay(): Promise<WorkDay> {
-  let day = dayjs().startOf("day").subtract(1);
+  let day = dayjs().startOf("day").subtract(1, "day");
   let emergencyBreak = 0;
   while (true) {
     const curDay = await checkDate(day);
