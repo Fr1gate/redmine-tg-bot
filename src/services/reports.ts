@@ -39,7 +39,7 @@ async function getPrevWorkDay(): Promise<WorkDay> {
         day,
       };
     }
-    day = day.subtract(1);
+    day = day.subtract(1, "day");
 
     emergencyBreak++;
     if (emergencyBreak > 100) {
